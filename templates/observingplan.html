@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/bootstrap.min.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/fontAwesome.min.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/hero-slider.min.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/templatemo-main.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/owl-carousel.css') }}">
+
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- https://favicon.io/emoji-favicons/money-mouth-face/ -->
+        <link href="/static/favicon.ico" rel="icon">
+
+        <link href="/static/styles.css" rel="stylesheet">
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+        <title>Observing Plan</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+
+    <div class="parallax-content baner-content" id="home">
+        <div class="container">
+            <div class="first-content">
+                <h1>Lodestar</h1>
+                <span><em>This is your observing list</em></span>
+            </div>
+            <div class="primary-button">
+                <a href="/select">Home</a>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Object</th>
+                <th>Type</th>
+                <th>Constellation</th>
+                <th>Transit Time</th>
+                <th>Best Viewed</th>
+                <th>Direction</th>
+                <th>Max Elevation</th>
+                <th>Surface Brightness</th>
+            </tr>
+        </thead>
+
+        {% for object in index_input %}
+        <tbody>
+            <tr>
+                <td><a href={{ object['link'] }}>{{ object['object'] }}</a></td>
+                <td>{{ object['type'] }}</td>
+                <td>{{ object['con'] }}</td>
+                <td>{{ object['transit_time'] }}</td>
+                <td>{{ object['best_viewed'] }}</td>
+                <td>{{ object['direction'] }}</td>
+                <td>{{ object['max_altitude'] }}</td>
+                <td>{{ object['surface_brightness'] }}</td>
+            </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+    </body>
+</html>

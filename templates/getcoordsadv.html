@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="styles.css" rel="stylesheet">
+        <title>Clusters</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <h1 style="text-align: center;"><b>Objects Visible from your Location</b></h1>
+        <p style="text-align: center;">Please ensure that your VPN is switched off for this tool to work accurately.</p>
+
+    <form id="form-group" action="/obsplanadv" method="post" hidden>
+        <div class="form-group">
+            Telescope Aperture (mm): <input id="aperture" autocomplete="off" autofocus class="form-control" name="aperture" placeholder="Telescope aperture (mm)" type="text" value="{{ aperture }}">
+        </div>
+
+        <div class="form-group">
+            Telescope Focal Length (mm): <input id="telescopefl" autocomplete="off" autofocus class="form-control" name="telescopefl" placeholder="Telescope Focal Length (mm)" type="text" value="{{ telescopefl }}">
+        </div>
+        <div class="form-group">
+            Eyepiece Focal Length (mm): <input id="eyepiecefl" autocomplete="off" autofocus class="form-control" name="eyepiecefl" placeholder="Eyepiece Focal Length (mm)" type="text" value="{{ eyepiecefl }}">
+        </div>
+        <div class="form-group">
+            Eyepiece FOV (degrees): <input id="eyepiecefov" autocomplete="off" autofocus class="form-control" name="eyepiecefov" placeholder="Eyepiece Field of View (degrees)" type="text">
+        </div>
+        <div class="form-group">
+            nelm: <input id="nelm" autocomplete="off" autofocus class="form-control" name="nelm" placeholder="nelm" type="text" value="{{ nelm }}">
+        </div>
+        <div class="form-group">
+            sort: <input id="sort" autocomplete="off" autofocus class="form-control" name="sort" placeholder="sort" type="text" value="{{ sort }}">
+        </div>
+        <div class="form-group">
+            sort: <input id="objectTypes" autocomplete="off" autofocus class="form-control" name="objectTypes" placeholder="objectTypes" type="text" value="{{ objectTypes }}">
+        </div>
+        <div class="form-group">
+            <input id="latitude" autocomplete="off" autofocus class="form-control" name="latitude" placeholder="latitude" type="text">
+        </div>
+        <div class="form-group">
+            <input id="longitude" autocomplete="off" autofocus class="form-control" name="longitude" placeholder="longitude" type="text">
+        </div>
+        <div class="form-group">
+            <input id="timezone" autocomplete="off" autofocus class="form-control" name="timezone" placeholder="Time Zone" type="text">
+        </div>
+                <div class="form-group">
+            <input id="object" autocomplete="off" autofocus class="form-control" name="object" placeholder="object" type="text">
+        </div>
+        <input id="submit"  type="submit" value="Submit">
+    </form>
+
+         <script>
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById("output1").innerHTML = "<p style=\"text-align: center; padding-left: 200px; padding-right: 200px; color: #339933; font-size: 24px;\">\
+                Your position is " + Math.round(position.coords.latitude * 10000)/10000 + ', ' + Math.round(position.coords.longitude * 10000)/10000 + "</p>";
+                document.getElementById("output2").innerHTML = "<p style=\"text-align: center; padding-left: 200px; padding-right: 200px; color: #000000 font-size: 28px;\">\
+                <b> Please wait while we redirect you. </b></p>";
+
+                // Set Latitude Limits Given Location
+                let latitude = position.coords.latitude;
+                let longitude = position.coords.longitude;
+
+                // Get offset
+                var date = new Date();
+                var timezone = -1 * date.getTimezoneOffset() / 60;
+                var object = "all"
+
+                document.getElementById("latitude").value=latitude;
+                document.getElementById("longitude").value=longitude;
+                document.getElementById("timezone").value=timezone;
+                document.getElementById("object").value=object;
+                document.getElementById('submit').click();
+
+                document.getElementById("output3").innerHTML = "<p style=\"text-align: center; padding-left: 200px; padding-right: 200px; color: #000000 font-size: 16px;\">\
+                <b> Timezone (GMT): " + timezone + "</b></p>";
+            })
+        </script>
+
+        <p id="output1" style="text-align: center">GETTING YOUR LOCATION...</p>
+        <p id="output3"></p>
+        <p id="output2"></p>
+
+
+    </body>
+</html>
