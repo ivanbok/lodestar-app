@@ -39,7 +39,7 @@ https://templatemo.com/tm-526-vanilla
         <div class="container">
             <div class="first-content">
                 <h1>Lodestar</h1>
-                <span><em>Deep Sky Searcher: </em> Advanced Planner</span>
+                <span><em>Deep Sky Searcher: </em> Search Object</span>
                 <div class="primary-button">
                     <a href="/select">Home</a>
                 </div>
@@ -47,53 +47,21 @@ https://templatemo.com/tm-526-vanilla
         </div>
     </div>
 
-
     <div class="service-content" id="services">
-        <h1 style="text-align: center; color: white"><b>Advanced Planner</b></h1>
+        <h1 style="text-align: center; color: white"><b>Search Object</b></h1>
         <div class="container">
             <div class="row" style="width:70%;">
-                <form id="form-group" action="/advanced" method="post" >
+                <form id="form-group" action="/objectsearch" method="post" >
                     <div class="form-group" style="color:white;">
-                        Telescope Aperture (mm): <input id="aperture" autocomplete="off" autofocus class="form-control" name="aperture" placeholder="Telescope aperture (mm)" type="number">
+                        Object Name: <input id="object" autocomplete="off" autofocus class="form-control" name="object" placeholder="Object Name" type="text">
                     </div>
                     <div class="form-group" style="color:white">
-                        Telescope Focal Length (mm): <input id="telescopefl" autocomplete="off" autofocus class="form-control" name="telescopefl" placeholder="Telescope Focal Length (mm)" type="number">
-                    </div>
-                    <div class="form-group" style="color:white">
-                        Eyepiece Focal Length (mm): <input id="eyepiecefl" autocomplete="off" autofocus class="form-control" name="eyepiecefl" placeholder="Eyepiece Focal Length (mm)" type="number">
-                    </div>
-                    <div class="form-group" style="color:white">
-                        Eyepiece FOV (degrees): <input id="eyepiecefov" autocomplete="off" autofocus class="form-control" name="eyepiecefov" placeholder="Eyepiece Field of View (degrees)" type="number">
-                    </div>
-                    <div class="form-group" style="color:white">
-                        Sort by:
-                    <select name="sort" id="sortkey" style="width: 293px;">
-                      <option value="surface_brightness_val">Surface Brightness</option>
-                      <option value="transit_time">Transit Time</option>
+                        Search Type:
+                    <select name="searchtype" id="searchtype" style="width: 293px;">
+                      <option value="exact">Exact Match to Search Term</option>
+                      <option value="contains">Contains Search Term</option>
                     </select>
                     </div>
-                    <div class="form-group" style="color:white">
-                        Light Pollution Level:
-                    <select name="nelm" id="nelm" style="width: 200px;">
-                      <option value="4">Inner City</option>
-                      <option value="5">City</option>
-                      <option value="6">Suburban</option>
-                      <option value="7">Rural</option>
-                      <option value="8">Dark Sky Reserve</option>
-                    </select>
-                    </div>
-
-                    <div class="form-group" style="color:white">
-                        Object Types:
-                    <select name="objectTypes" id="objectTypes" style="width: 250px;">
-                      <option value="all">All</option>
-                      <option value="GALXY">Galaxies</option>
-                      <option value="NB">Nebulae</option>
-                      <option value="OPNCL">Open Clusters</option>
-                      <option value="GLOCL">Globular Clusters</option>
-                    </select>
-                    </div>
-
                     <input id="submit"  class="primary-button" type="submit" value="Submit">
                 </form>
             </div>

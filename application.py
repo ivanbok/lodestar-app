@@ -9,6 +9,9 @@ import requests
 from tempfile import mkdtemp
 from datetime import datetime
 from daylighthours import daylighthours, sidereal_time
+from bestviewed import bestviewed, monthtostring
+import suncalc
+import obsrec
 
 # Configure application
 app = Flask(__name__, static_url_path="", static_folder="static")
@@ -56,6 +59,7 @@ def obsplan():
         latitude_upper = latitude + 60
         latitude_lower = latitude - 60
         longitude = float(request.form.get("longitude"))
+        coordsstr = printcoords(latitude, longitude)
         timezone = float(request.form.get("timezone"))
         objectType = request.form.get("object")
 
@@ -67,6 +71,13 @@ def obsplan():
         local_sunrise_time = sunrise + timezone
         local_sunset_time = sunset + timezone
         twilight_length = 1 #Assume 1 hour of twilight
+
+        # Calculate moonrise and moonset time
+        moontimesdict = suncalc.getMoonTimes(datetime.now(), latitude, longitude)
+        moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
+        moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
+        moonrisestr = timefloattostr(moonrise)
+        moonsetstr = timefloattostr(moonset)
 
         # Calculate the hours of darkness at location
         dark_hours_before_midnight = 24 - local_sunset_time - twilight_length
@@ -187,7 +198,11 @@ def obsplan():
         df.sort_values('surface_brightness_val', inplace=True)
         input = df.to_dict('records')
 
-        return render_template("observingplan.html", index_input=input)
+        local_sunrise_time_formatted = timefloattostr(local_sunrise_time)
+        local_sunset_time_formatted = timefloattostr(local_sunset_time)
+        recommendation = obsrec.obsrecommendation(longitude, latitude, datetime.now())
+
+        return render_template("observingplan.html", index_input=input, coordsstr=coordsstr, local_sunrise_time=local_sunrise_time_formatted, local_sunset_time=local_sunset_time_formatted, moonrise=moonrisestr, moonset=moonsetstr, recommendation=recommendation)
 
 @app.route('/advanced', methods = ['POST', 'GET'])
 def advanced():
@@ -215,8 +230,10 @@ def obsplanadv():
         latitude_upper = latitude + 60
         latitude_lower = latitude - 60
         longitude = float(request.form.get("longitude"))
+        coordsstr = printcoords(latitude, longitude)
         timezone = float(request.form.get("timezone"))
         objectType = "all"
+        aperturestr = request.form.get("aperture")
         aperture = float(request.form.get("aperture"))
         telescopefl = float(request.form.get("telescopefl"))
         eyepiecefl = float(request.form.get("eyepiecefl"))
@@ -225,6 +242,7 @@ def obsplanadv():
         nelm = float(request.form.get("nelm"))
         objectType = request.form.get("objectTypes")
         magnification = telescopefl / eyepiecefl
+        magnificationstr = str(int(magnification)) + "x"
         # tfov_degrees = eyepiecefov / magnification
         # tfov_arcmin = tfov_degrees * 60
         # tfov_tenth = tfov_arcmin / 10 # One Tenth of TFOV as minimum size required
@@ -241,6 +259,13 @@ def obsplanadv():
         local_sunrise_time = sunrise + timezone
         local_sunset_time = sunset + timezone
         twilight_length = 1 #Assume 1 hour of twilight
+
+        # Calculate moonrise and moonset time
+        moontimesdict = suncalc.getMoonTimes(datetime.now(), latitude, longitude)
+        moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
+        moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
+        moonrisestr = timefloattostr(moonrise)
+        moonsetstr = timefloattostr(moonset)
 
         # Calculate the hours of darkness at location
         dark_hours_before_midnight = 24 - local_sunset_time - twilight_length
@@ -361,4 +386,114 @@ def obsplanadv():
         df.sort_values(sortby, inplace=True)
         input = df.to_dict('records')
 
-        return render_template("observingplanadv.html", index_input=input, telescopefl=telescopefl)
+        local_sunrise_time_formatted = timefloattostr(local_sunrise_time)
+        local_sunset_time_formatted = timefloattostr(local_sunset_time)
+        recommendation = obsrec.obsrecommendation(longitude, latitude, datetime.now())
+        equipmentmessage = "This is what you can see with a " + aperturestr + "mm telescope and a magnification of " + magnificationstr + ". "
+
+        return render_template("observingplanadv.html", index_input=input, telescopefl=telescopefl, aperture=aperturestr, magnification=magnificationstr, coordsstr=coordsstr, local_sunrise_time=local_sunrise_time_formatted, local_sunset_time=local_sunset_time_formatted, moonrise=moonrisestr, moonset=moonsetstr, recommendation=recommendation, equipmentmessage=equipmentmessage)
+
+@app.route('/objectsearch', methods = ['POST', 'GET'])
+def objectsearch():
+    if request.method == "GET":
+        return render_template("objectsearch.html")
+    else:
+        object_name = request.form.get("object")
+        searchtype = request.form.get("searchtype")
+        if searchtype == "exact":
+            rows = db.execute("SELECT object, type, con, ra, dec, mag, subr, size_max, size_min FROM dso WHERE object LIKE :object",
+                object=object_name + "%")
+            if len(rows) == 0:
+                message = "No matching object was found. Please try another object"
+                link = "/objectsearch"
+                buttondesc = "Search again"
+                return render_template("error.html", message=message, link=link, buttondesc=buttondesc)
+            result = rows[0]
+            objectType = result["type"]
+            ra = float(result["ra"])
+            dec = float(result["dec"])
+            object_name = result["object"]
+            #BRTNB, SNREM, GALXY, CL+NB, GLOCL, OPNCL
+            if objectType == "PLNNB":
+                objectTypeName = "Planetary Nebula"
+                filename = "planetarynebula.jpeg"
+                objectDescription = object_name + " is a planetary nebula (PN, plural PNe), which is a type of emission nebula consisting of an expanding, glowing shell of ionized gas ejected from red giant stars late in their lives. "
+            elif objectType == "BRTNB" or objectType == "CL+NB":
+                objectTypeName = "Nebula"
+                filename = "nebula.jpeg"
+                objectDescription = object_name + " is nebula, which is a distinct body of interstellar clouds (which can consist of cosmic dust, hydrogen, helium, molecular clouds; possibly as ionized gases)."
+            elif objectType == "SNREM":
+                objectTypeName = "Supernova Remnant"
+                filename = "supernovaremnant.jpeg"
+                objectDescription = object_name + " is a supernova remnant, which is the structure resulting from the explosion of a star in a supernova. The supernova remnant is bounded by an expanding shock wave, and consists of ejected material expanding from the explosion, and the interstellar material it sweeps up and shocks along the way. "
+            elif objectType == "GALXY":
+                objectTypeName = "Galaxy"
+                filename = "galaxy.jpeg"
+                objectDescription = object_name + " is a galaxy, which is a gravitationally bound system of stars, stellar remnants, interstellar gas, dust, and dark matter. The word is derived from the Greek galaxias, literally 'milky', a reference to the Milky Way galaxy that contains the Solar System. "
+            elif objectType == "GLOCL":
+                objectTypeName = "Globular Cluster"
+                filename = "globularcluster.jpeg"
+                objectDescription = object_name + " is a globular cluster, which is a spherical collection of stars. Globular clusters are very tightly bound by gravity, with a high concentration of stars towards their centers. Their name is derived from Latin globulus—a small sphere. Globular clusters are occasionally known simply as globulars. "
+            elif objectType == "OPNCL":
+                objectTypeName = "Open Cluster"
+                filename = "opencluster.jpeg"
+                objectDescription = object_name + " is an open cluster, which is a type of star cluster made of up to a few thousand stars that were formed from the same giant molecular cloud and have roughly the same age. More than 1,100 open clusters have been discovered within the Milky Way Galaxy, and many more are thought to exist."
+            else:
+                objectTypeName = "Unknown Object Type"
+                filename = "nebula.jpeg"
+                objectDescription = object_name + " is object of undefined class."
+            
+            latitude = 1.33
+            longitude = 103.85
+            bestmonth = bestviewed(ra,dec,latitude,longitude)
+            startmonth = bestmonth - 2
+            if startmonth < 1:
+                startmonth = startmonth + 12
+            startmonth = monthtostring(int(startmonth))
+            endmonth = bestmonth + 2
+            if endmonth > 12:
+                endmonth = endmonth - 12
+            endmonth = monthtostring(int(endmonth))
+            bestmonth = monthtostring(int(bestmonth))
+            max_altitude = str(round(90 - math.fabs(dec - latitude)))
+            recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitude + " degrees. "
+            recommendation = recommendation + "It can be seen from your location between the months of " + startmonth + " and " + endmonth + ". "
+            ra = float(int(ra * 100))/100
+            dec = float(int(dec * 100))/100
+            return render_template("objectdetails.html", filename=filename, ra=ra, dec=dec, object_name=object_name, objectTypeName=objectTypeName, objectDescription=objectDescription, recommendation=recommendation)
+        else:
+            rows = db.execute("SELECT object, type, con, ra, dec, mag, subr, size_max, size_min FROM dso WHERE object LIKE :object",
+                object="%" + object_name + "%")
+            return render_template("searchresults.html")
+
+def timefloattostr(timefloat):
+    hours_int = int(timefloat)
+    min_str = str(int(60*(timefloat - int(timefloat))))
+    if len(min_str) == 1:
+        min_str = "0" + min_str
+    morning = True
+    if hours_int >= 12:
+        morning = False
+    if hours_int > 12:
+        hours_int = hours_int - 12
+    if morning:
+        outputstr = str(hours_int) + ":" + min_str + " AM"
+    else:
+        outputstr = str(hours_int) + ":" + min_str + " PM"
+    return outputstr
+
+def printcoords(latitude, longitude):
+    if latitude > 0:
+        latdir = "N"
+    else:
+        latitude = latitude * -1
+        latdir = "S"
+    if longitude > 0:
+        longdir = "E"
+    else:
+        longitude = longitude * -1
+        longdir = "W"
+    latitudestr = str(float(int(latitude * 100))/100)
+    longitudestr = str(float(int(longitude * 100))/100)
+    coordsstr = latitudestr + " " + latdir + ", " + longitudestr + " " + longdir
+    return coordsstr

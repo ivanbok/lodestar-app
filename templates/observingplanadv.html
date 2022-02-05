@@ -35,6 +35,32 @@
                 <h1>Lodestar</h1>
                 <span><em>This is your observing list</em></span>
             </div>
+            <br>
+            <div style="color:white">{{ recommendation }}</div>
+            <div style="color:white">{{ equipmentmessage }}</div>
+            <br>
+            <table style="border:1px solid white;margin-left:auto;margin-right:auto; color:white">
+                <tr>
+                    <td>Your Detected Location:</td>
+                    <td>{{ coordsstr }}</td>
+                </tr>
+                <tr>
+                    <td>Local Sunset Time: </td>
+                    <td>{{ local_sunset_time }}</td>
+                </tr>
+                <tr>
+                    <td>Local Sunrise Time: </td>
+                    <td>{{ local_sunrise_time }}</td>
+                </tr>
+                <tr>
+                    <td>Moonrise Time: </td>
+                    <td>{{ moonrise }}</td>
+                </tr>
+                <tr>
+                    <td> Moonset Time: </td>
+                    <td>{{ moonset }}</td>
+                </tr>
+            </table>
             <div class="primary-button">
                 <a href="/advanced">Make another Search</a>
             </div>

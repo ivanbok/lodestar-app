@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Object Details</title>
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/bootstrap.min.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/fontAwesome.min.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/hero-slider.min.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/templatemo-main.css') }}">
+        <link rel= "stylesheet" href= "{{ url_for('static',filename='styles/owl-carousel.css') }}">
+
+        <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/static/styles.css" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+    </head>
+<body>
+    <table class="table table-striped">
+        <tbody>
+            <tr>
+                <td><img src="img/{{ filename }}" alt="{{ objectTypeName }}" width="600" height="360"></td>
+                <td>
+                    <h1>{{ object_name }} </h1>
+                    <hr>
+                    <h4>Celestial Coordinates: </h4>
+                    Right Ascension: {{ra}} Hours
+                    <br>
+                    Declination: {{ dec }} Degrees
+                    <hr>
+                    <h4>Object Data:</h4>
+                    Type: {{ objectTypeName }}
+                    <br>
+                    Description: {{ objectDescription }}
+                    <hr>
+                    <h4>Observing Recommendations for your location:</h4>
+                    {{ recommendation }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="primary-button" style="text-align: center;">
+        <a href="/objectsearch">Search another object</a>
+    </div>
+</body>
+</html>
