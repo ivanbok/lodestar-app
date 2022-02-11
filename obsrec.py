@@ -32,8 +32,16 @@ def obsrecommendation(longitude, latitude, time):
     nightstart = timetodecimal(float(suntimesdict["night"]))
     nightend = timetodecimal(float(suntimesdict["nightEnd"]))
     moontimesdict = suncalc.getMoonTimes(time, latitude, longitude)
-    moonrise = timetodecimal(float(moontimesdict["rise"]))
-    moonset = timetodecimal(float(moontimesdict["set"]))
+    # Calculate moonrise and moonset time
+    if 'rise' in moontimesdict.keys():
+        moonrise = timetodecimal(float(moontimesdict["rise"]))
+    else:
+        moonrise = timetodecimal(0.0)
+
+    if 'set' in moontimesdict.keys():
+        moonset = timetodecimal(float(moontimesdict["set"]))
+    else:
+        moonset = timetodecimal(0.0)
     moonilluminationdict = suncalc.getMoonIllumination(time)
     moonillumination = moonilluminationdict['fraction']
 

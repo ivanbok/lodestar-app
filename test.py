@@ -1,19 +1,19 @@
-import suncalc
-import datetime
+import requests
 
-longitude = 103.48
-latitude = 1.22
+has_url = False
+r = requests.get("https://en.wikipedia.org/wiki/NGC_1976")
+response = r.text
+if "https://upload.wikimedia.org/wikipedia" in response:
+    index = response.index("https://upload.wikimedia.org/wikipedia")
+    has_url = True
 
-ra = 18.8
-dec = 45.67
+loop = has_url
+imgurl = ""
+while loop:
+    imgurl = imgurl + response[index]
+    index = index + 1
+    if response[index] + response[index + 1] + response[index + 2] == "\"/>":
+        loop = False
 
-def bestviewed(ra,dec,latitude,longitude)
-    daysfromvernalequinox = (float(ra)/24) * 365
-    if daysfromvernalequinox < 286:
-        dayofyear = int(daysfromvernalequinox + 79)
-    else:
-        dayofyear = int(daysfromvernalequinox - 286)
-    month = int(dayofyear/30.41) + 1
-    startview = month - 2
-    endview = month + 2
-    return month
+print(imgurl)
+# content="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg/1200px-Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg"/>

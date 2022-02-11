@@ -74,11 +74,18 @@ def obsplan():
 
         # Calculate moonrise and moonset time
         moontimesdict = suncalc.getMoonTimes(datetime.now(), latitude, longitude)
-        moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
-        moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
-        moonrisestr = timefloattostr(moonrise)
-        moonsetstr = timefloattostr(moonset)
+        if 'rise' in moontimesdict.keys():
+            moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
+            moonrisestr = timefloattostr(moonrise)
+        else:
+            moonrisestr = "N/A Today"
 
+        if 'set' in moontimesdict.keys():
+            moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
+            moonsetstr = timefloattostr(moonset)
+        else:
+            moonsetstr = "N/A Today"
+        
         # Calculate the hours of darkness at location
         dark_hours_before_midnight = 24 - local_sunset_time - twilight_length
         dark_hours_after_midnight = local_sunrise_time - twilight_length
@@ -262,10 +269,17 @@ def obsplanadv():
 
         # Calculate moonrise and moonset time
         moontimesdict = suncalc.getMoonTimes(datetime.now(), latitude, longitude)
-        moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
-        moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
-        moonrisestr = timefloattostr(moonrise)
-        moonsetstr = timefloattostr(moonset)
+        if 'rise' in moontimesdict.keys():
+            moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
+            moonrisestr = timefloattostr(moonrise)
+        else:
+            moonrisestr = "N/A Today"
+
+        if 'set' in moontimesdict.keys():
+            moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
+            moonsetstr = timefloattostr(moonset)
+        else:
+            moonsetstr = "N/A Today"
 
         # Calculate the hours of darkness at location
         dark_hours_before_midnight = 24 - local_sunset_time - twilight_length
@@ -400,6 +414,8 @@ def objectsearch():
     else:
         object_name = request.form.get("object")
         searchtype = request.form.get("searchtype")
+        latitude = float(request.form.get("latitude"))
+        longitude = float(request.form.get("longitude"))
         if searchtype == "exact":
             rows = db.execute("SELECT object, type, con, ra, dec, mag, subr, size_max, size_min FROM dso WHERE object LIKE :object",
                 object=object_name + "%")
@@ -416,48 +432,85 @@ def objectsearch():
             #BRTNB, SNREM, GALXY, CL+NB, GLOCL, OPNCL
             if objectType == "PLNNB":
                 objectTypeName = "Planetary Nebula"
-                filename = "planetarynebula.jpeg"
+                filename = "img/planetarynebula.jpeg"
                 objectDescription = object_name + " is a planetary nebula (PN, plural PNe), which is a type of emission nebula consisting of an expanding, glowing shell of ionized gas ejected from red giant stars late in their lives. "
-            elif objectType == "BRTNB" or objectType == "CL+NB":
+            elif objectType == "BRTNB" or objectType == "CL+NB" or objectType == "LMCCN":
                 objectTypeName = "Nebula"
-                filename = "nebula.jpeg"
+                filename = "img/nebula.jpeg"
                 objectDescription = object_name + " is nebula, which is a distinct body of interstellar clouds (which can consist of cosmic dust, hydrogen, helium, molecular clouds; possibly as ionized gases)."
             elif objectType == "SNREM":
                 objectTypeName = "Supernova Remnant"
-                filename = "supernovaremnant.jpeg"
+                filename = "img/supernovaremnant.jpeg"
                 objectDescription = object_name + " is a supernova remnant, which is the structure resulting from the explosion of a star in a supernova. The supernova remnant is bounded by an expanding shock wave, and consists of ejected material expanding from the explosion, and the interstellar material it sweeps up and shocks along the way. "
             elif objectType == "GALXY":
                 objectTypeName = "Galaxy"
-                filename = "galaxy.jpeg"
+                filename = "img/galaxy.jpeg"
                 objectDescription = object_name + " is a galaxy, which is a gravitationally bound system of stars, stellar remnants, interstellar gas, dust, and dark matter. The word is derived from the Greek galaxias, literally 'milky', a reference to the Milky Way galaxy that contains the Solar System. "
             elif objectType == "GLOCL":
                 objectTypeName = "Globular Cluster"
-                filename = "globularcluster.jpeg"
+                filename = "img/globularcluster.jpeg"
                 objectDescription = object_name + " is a globular cluster, which is a spherical collection of stars. Globular clusters are very tightly bound by gravity, with a high concentration of stars towards their centers. Their name is derived from Latin globulus—a small sphere. Globular clusters are occasionally known simply as globulars. "
             elif objectType == "OPNCL":
                 objectTypeName = "Open Cluster"
-                filename = "opencluster.jpeg"
+                filename = "img/opencluster.jpeg"
                 objectDescription = object_name + " is an open cluster, which is a type of star cluster made of up to a few thousand stars that were formed from the same giant molecular cloud and have roughly the same age. More than 1,100 open clusters have been discovered within the Milky Way Galaxy, and many more are thought to exist."
             else:
                 objectTypeName = "Unknown Object Type"
-                filename = "nebula.jpeg"
+                filename = "img/nebula.jpeg"
                 objectDescription = object_name + " is object of undefined class."
             
-            latitude = 1.33
-            longitude = 103.85
+            object_name_url = ""
+            for object_namr_char in object_name:
+                if object_namr_char == " ":
+                    object_name_url = object_name_url + "_"
+                else:
+                    object_name_url = object_name_url + object_namr_char
+
+            has_url = False
+            r = requests.get("https://en.wikipedia.org/wiki/" + object_name_url)
+            response = r.text
+            if "https://upload.wikimedia.org/wikipedia" in response:
+                index = response.index("https://upload.wikimedia.org/wikipedia")
+                has_url = True
+
+            loop = has_url
+            imgurl = ""
+            while loop:
+                imgurl = imgurl + response[index]
+                index = index + 1
+                if response[index] + response[index + 1] + response[index + 2] == "\"/>":
+                    loop = False
+            
+            if has_url:
+                filename = imgurl
+
+            max_altitude = 90 - math.fabs(dec - latitude)
+            max_altitudestr = str(round(90 - math.fabs(dec - latitude)))
             bestmonth = bestviewed(ra,dec,latitude,longitude)
-            startmonth = bestmonth - 2
+            if max_altitude > 30:
+                startmonth = bestmonth - 2
+                endmonth = bestmonth + 2
+            else:
+                startmonth = bestmonth - 1
+                endmonth = bestmonth + 1
             if startmonth < 1:
                 startmonth = startmonth + 12
             startmonth = monthtostring(int(startmonth))
-            endmonth = bestmonth + 2
             if endmonth > 12:
                 endmonth = endmonth - 12
             endmonth = monthtostring(int(endmonth))
             bestmonth = monthtostring(int(bestmonth))
-            max_altitude = str(round(90 - math.fabs(dec - latitude)))
-            recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitude + " degrees. "
-            recommendation = recommendation + "It can be seen from your location between the months of " + startmonth + " and " + endmonth + ". "
+            if max_altitude > 30:
+                recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitudestr + " degrees. "
+                recommendation = recommendation + "It can be seen from your location between the months of " + startmonth + " and " + endmonth + ". "
+            elif max_altitude < 30 and max_altitude > 10:
+                recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitudestr + " degrees. "
+                recommendation = recommendation + "Since this object rises to a rather low elevation of " + max_altitudestr + " degrees, it is slightly more challenging to observe from your location. "
+                recommendation = recommendation + "As such, we only recommend viewing it between the months of " + startmonth + " and " + endmonth + ". "
+            else:
+                recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitudestr + " degrees. "
+                recommendation = recommendation + "However, since this object only rises to a low elevation of " + max_altitudestr + " degrees, it is unlikely to be visible from your location."
+
             ra = float(int(ra * 100))/100
             dec = float(int(dec * 100))/100
             return render_template("objectdetails.html", filename=filename, ra=ra, dec=dec, object_name=object_name, objectTypeName=objectTypeName, objectDescription=objectDescription, recommendation=recommendation)

@@ -62,6 +62,12 @@ https://templatemo.com/tm-526-vanilla
                       <option value="contains">Contains Search Term</option>
                     </select>
                     </div>
+                    <div class="form-group">
+                        <input id="latitude" autocomplete="off" autofocus class="form-control" name="latitude" placeholder="latitude" type="hidden" value="1.22">
+                    </div>
+                    <div class="form-group">
+                        <input id="longitude" autocomplete="off" autofocus class="form-control" name="longitude" placeholder="longitude" type="hidden" value="103.48">
+                    </div>
                     <input id="submit"  class="primary-button" type="submit" value="Submit">
                 </form>
             </div>
@@ -133,6 +139,19 @@ https://templatemo.com/tm-526-vanilla
           });
         });
     </script>
+
+    <script>
+        navigator.geolocation.getCurrentPosition(function(position) {
+            // Set Latitude Limits Given Location
+            let latitude = position.coords.latitude;
+            let longitude = position.coords.longitude;
+
+            // Get offset
+            document.getElementById("latitude").value=latitude;
+            document.getElementById("longitude").value=longitude;
+        })
+    </script>
+
 
 </body>
 </html>
