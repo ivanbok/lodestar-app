@@ -68,6 +68,9 @@ https://templatemo.com/tm-526-vanilla
                     <div class="form-group">
                         <input id="longitude" autocomplete="off" autofocus class="form-control" name="longitude" placeholder="longitude" type="hidden" value="103.48">
                     </div>
+                    <div class="form-group">
+                        <input id="timezone" autocomplete="off" autofocus class="form-control" name="timezone" placeholder="timezone" type="hidden" value="8">
+                    </div>
                     <input id="submit"  class="primary-button" type="submit" value="Submit">
                 </form>
             </div>
@@ -147,8 +150,14 @@ https://templatemo.com/tm-526-vanilla
             let longitude = position.coords.longitude;
 
             // Get offset
+            var date = new Date();
+            var timezone = -1 * date.getTimezoneOffset() / 60;
+
+            // Set Form
             document.getElementById("latitude").value=latitude;
             document.getElementById("longitude").value=longitude;
+            document.getElementById("timezone").value=timezone;
+
         })
     </script>
 

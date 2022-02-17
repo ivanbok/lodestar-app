@@ -23,7 +23,7 @@ def timefloattostring(timefloat):
 
 def timedurtostr(timefloat):
     hours_int = int(timefloat)
-    min_str = str(int(100*(timefloat - int(timefloat))))
+    min_str = str(int(60*(timefloat - int(timefloat))))
     outputstr = str(hours_int) + "H " + min_str + "min"
     return outputstr
 

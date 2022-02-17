@@ -416,6 +416,35 @@ def objectsearch():
         searchtype = request.form.get("searchtype")
         latitude = float(request.form.get("latitude"))
         longitude = float(request.form.get("longitude"))
+        timezone = float(request.form.get("timezone"))
+
+        sunrise, sunset = daylighthours(latitude, longitude)
+        local_sidereal_time_sunset = sidereal_time(sunset, longitude)
+        local_sidereal_time_sunrise = sidereal_time(sunrise, longitude)
+
+        # Find difference between sidereal and clock time:
+        sidereal_time_difference = local_sidereal_time_sunset - sunset
+
+        # Temporary Translator for Common Options
+        if object_name.lower() == "orion nebula":
+            object_name = "NGC 1976"
+        elif object_name.lower() == "tarantula nebula":
+            object_name = "NGC 2070"
+        elif object_name.lower() == "helix nebula":
+            object_name = "NGC 7293"
+        elif object_name.lower() == "omega centauri":
+            object_name = "NGC 5139"
+        elif object_name.lower() == "centaurus a":
+            object_name = "NGC 5128"
+        elif object_name.lower() == "veil nebula":
+            object_name = "NGC 6960"
+        elif object_name.lower() == "rosette nebula":
+            object_name = "NGC 2244"
+        elif object_name.lower() == "lagoon nebula":
+            object_name = "NGC 6523"
+        elif object_name.lower() == "north america nebula":
+            object_name = "NGC 7000"
+
         if searchtype == "exact":
             rows = db.execute("SELECT object, type, con, ra, dec, mag, subr, size_max, size_min FROM dso WHERE object LIKE :object",
                 object=object_name + "%")
@@ -498,9 +527,15 @@ def objectsearch():
             startmonth = monthtostring(int(startmonth))
             if endmonth > 12:
                 endmonth = endmonth - 12
+            endmonth_int = endmonth
+            startmonth_int = startmonth
             endmonth = monthtostring(int(endmonth))
             bestmonth = monthtostring(int(bestmonth))
-            if max_altitude > 30:
+            if max_altitude > 60:
+                recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitudestr + " degrees. "
+                recommendation = recommendation + "This means that your current location is an excellent position to view this object as it rises high into the sky. "
+                recommendation = recommendation + "It can be seen from your location between the months of " + startmonth + " and " + endmonth + ". "
+            elif max_altitude > 30 and max_altitude < 60:
                 recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitudestr + " degrees. "
                 recommendation = recommendation + "It can be seen from your location between the months of " + startmonth + " and " + endmonth + ". "
             elif max_altitude < 30 and max_altitude > 10:
@@ -509,11 +544,28 @@ def objectsearch():
                 recommendation = recommendation + "As such, we only recommend viewing it between the months of " + startmonth + " and " + endmonth + ". "
             else:
                 recommendation = object_name + " is best viewed in " + bestmonth + " when it rises to an elevation of " + max_altitudestr + " degrees. "
-                recommendation = recommendation + "However, since this object only rises to a low elevation of " + max_altitudestr + " degrees, it is unlikely to be visible from your location."
+                recommendation = recommendation + "However, since this object only rises to a low elevation of " + max_altitudestr + " degrees, it is unlikely to be visible from your location. "
+
+            # Give additional recommendations if object is visible now. 
+            objectVisible = False
+            sunrise_local = sunrise + timezone
+            sunset_local = sunset + timezone
+            UTC_time_meridian = ra - sidereal_time_difference
+            local_time_meridian = UTC_time_meridian + timezone #Convert to local timezone
+            local_time_meridian = local_time_meridian % 24
+
+            if local_time_meridian > sunset_local and local_time_meridian < 24:
+                objectVisible = True
+            elif local_time_meridian < sunrise_local and local_time_meridian > 0:
+                objectVisible = True
+            
+            if objectVisible and max_altitude > 10:
+                transit_time = timefloattostr(local_time_meridian)
+                recommendation = recommendation + "The best time to view this object today will be at " + transit_time + " when it will be at its highest point in the sky. "
 
             ra = float(int(ra * 100))/100
             dec = float(int(dec * 100))/100
-            return render_template("objectdetails.html", filename=filename, ra=ra, dec=dec, object_name=object_name, objectTypeName=objectTypeName, objectDescription=objectDescription, recommendation=recommendation)
+            return render_template("objectdetails.html", filename=filename, ra=ra, dec=dec, object_name=object_name, objectTypeName=objectTypeName, objectDescription=objectDescription, recommendation=recommendation, timezone=timezone, local_time_meridian=local_time_meridian)
         else:
             rows = db.execute("SELECT object, type, con, ra, dec, mag, subr, size_max, size_min FROM dso WHERE object LIKE :object",
                 object="%" + object_name + "%")
