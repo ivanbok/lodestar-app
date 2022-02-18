@@ -5,6 +5,7 @@ pip3 install daylight
 pip3 install temp
 pip3 install cs50
 pip3 install pandas
+pip3 install flask-session
 
 # For Linux
 sudo yum update -y
@@ -16,3 +17,4 @@ export FLASK_APP=application.py
 
 # Run the Dev server
 flask run
+flask run --host=0.0.0.0
