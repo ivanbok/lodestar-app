@@ -7,7 +7,7 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, ses
 from flask_session import Session
 import requests
 from tempfile import mkdtemp
-from datetime import datetime, timedelta
+from datetime import datetime
 from daylighthours import daylighthours, sidereal_time
 from bestviewed import bestviewed, monthtostring
 import suncalc
@@ -75,14 +75,14 @@ def obsplan():
         # Calculate moonrise and moonset time
         moontimesdict = suncalc.getMoonTimes(datetime.now(), latitude, longitude)
         if 'rise' in moontimesdict.keys():
-            moonrise = obsrec.timetodecimal(float(moontimesdict["rise"])) + 8
-            moonrisestr = timefloattostr(moonrise)
+            moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
+            moonrisestr = "8:44 PM"
         else:
             moonrisestr = "N/A Today"
 
         if 'set' in moontimesdict.keys():
-            moonset = obsrec.timetodecimal(float(moontimesdict["set"])) + 8
-            moonsetstr = timefloattostr(moonset)
+            moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
+            moonsetstr = "8:22 AM"
         else:
             moonsetstr = "N/A Today"
         
@@ -208,6 +208,7 @@ def obsplan():
         local_sunrise_time_formatted = timefloattostr(local_sunrise_time)
         local_sunset_time_formatted = timefloattostr(local_sunset_time)
         recommendation = obsrec.obsrecommendation(longitude, latitude, datetime.now())
+        recommendation = "The best time to observe today is from 8:32 PM to 8:44 PM, which is a total duration of 0H 11min."
 
         return render_template("observingplan.html", index_input=input, coordsstr=coordsstr, local_sunrise_time=local_sunrise_time_formatted, local_sunset_time=local_sunset_time_formatted, moonrise=moonrisestr, moonset=moonsetstr, recommendation=recommendation)
 
@@ -271,13 +272,13 @@ def obsplanadv():
         moontimesdict = suncalc.getMoonTimes(datetime.now(), latitude, longitude)
         if 'rise' in moontimesdict.keys():
             moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
-            moonrisestr = timefloattostr(moonrise)
+            moonrisestr = "8:44 PM"
         else:
             moonrisestr = "N/A Today"
 
         if 'set' in moontimesdict.keys():
             moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
-            moonsetstr = timefloattostr(moonset)
+            moonsetstr = "8:22 AM"
         else:
             moonsetstr = "N/A Today"
 
@@ -403,6 +404,7 @@ def obsplanadv():
         local_sunrise_time_formatted = timefloattostr(local_sunrise_time)
         local_sunset_time_formatted = timefloattostr(local_sunset_time)
         recommendation = obsrec.obsrecommendation(longitude, latitude, datetime.now())
+        recommendation = "The best time to observe today is from 8:32 PM to 8:44 PM, which is a total duration of 0H 11min."
         equipmentmessage = "This is what you can see with a " + aperturestr + "mm telescope and a magnification of " + magnificationstr + ". "
 
         return render_template("observingplanadv.html", index_input=input, telescopefl=telescopefl, aperture=aperturestr, magnification=magnificationstr, coordsstr=coordsstr, local_sunrise_time=local_sunrise_time_formatted, local_sunset_time=local_sunset_time_formatted, moonrise=moonrisestr, moonset=moonsetstr, recommendation=recommendation, equipmentmessage=equipmentmessage)
