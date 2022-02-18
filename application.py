@@ -73,15 +73,15 @@ def obsplan():
         twilight_length = 1 #Assume 1 hour of twilight
 
         # Calculate moonrise and moonset time
-        moontimesdict = suncalc.getMoonTimes(datetime.now() + timedelta(hours=8), latitude, longitude)
+        moontimesdict = suncalc.getMoonTimes(datetime.now(), latitude, longitude)
         if 'rise' in moontimesdict.keys():
-            moonrise = obsrec.timetodecimal(float(moontimesdict["rise"]))
+            moonrise = obsrec.timetodecimal(float(moontimesdict["rise"])) + 8
             moonrisestr = timefloattostr(moonrise)
         else:
             moonrisestr = "N/A Today"
 
         if 'set' in moontimesdict.keys():
-            moonset = obsrec.timetodecimal(float(moontimesdict["set"]))
+            moonset = obsrec.timetodecimal(float(moontimesdict["set"])) + 8
             moonsetstr = timefloattostr(moonset)
         else:
             moonsetstr = "N/A Today"
